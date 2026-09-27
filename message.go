@@ -181,17 +181,10 @@ func ParseMessageWithDataDictionary(
 
 // doParsing executes the message parsing process.
 func doParsing(mp *msgParser) (err error) {
-	mp.msg.Header.rwLock.Lock()
-	defer mp.msg.Header.rwLock.Unlock()
-	mp.msg.Body.rwLock.Lock()
-	defer mp.msg.Body.rwLock.Unlock()
-	mp.msg.Trailer.rwLock.Lock()
-	defer mp.msg.Trailer.rwLock.Unlock()
-
 	// Initialize for parsing.
-	mp.msg.Header.clearNoLock()
-	mp.msg.Body.clearNoLock()
-	mp.msg.Trailer.clearNoLock()
+	mp.msg.Header.Clear()
+	mp.msg.Body.Clear()
+	mp.msg.Trailer.Clear()
 
 	// Allocate expected message fields in one chunk.
 	fieldCount := bytes.Count(mp.rawBytes, []byte{'\001'})
@@ -269,7 +262,7 @@ func doParsing(mp *msgParser) (err error) {
 		}
 
 		if mp.parsedFieldBytes.tag == tagXMLDataLen {
-			xmlDataLen, _ = mp.msg.Header.getIntNoLock(tagXMLDataLen)
+			xmlDataLen, _ = mp.msg.Header.GetInt(tagXMLDataLen)
 		}
 		mp.fieldIndex++
 	}
@@ -294,7 +287,7 @@ func doParsing(mp *msgParser) (err error) {
 		}
 	}
 
-	bodyLength, err := mp.msg.Header.getIntNoLock(tagBodyLength)
+	bodyLength, err := mp.msg.Header.GetInt(tagBodyLength)
 	if err != nil {
 		err = parseError{OrigError: err.Error()}
 	} else if length != bodyLength && !xmlDataMsg {
@@ -380,7 +373,7 @@ parseLoop:
 // tags slice will contain multiple tags if the tag in question is found while processing a group already.
 func isNumInGroupField(msg *Message, tags []Tag, appDataDictionary *datadictionary.DataDictionary) bool {
 	if appDataDictionary != nil {
-		msgt, err := msg.msgTypeNoLock()
+		msgt, err := msg.MsgType()
 		if err != nil {
 			return false
 		}
@@ -413,7 +406,7 @@ func isNumInGroupField(msg *Message, tags []Tag, appDataDictionary *datadictiona
 // tags slice will contain multiple tags if the tag in question is found while processing a group already.
 func getGroupFields(msg *Message, tags []Tag, appDataDictionary *datadictionary.DataDictionary) (fields []*datadictionary.FieldDef) {
 	if appDataDictionary != nil {
-		msgt, err := msg.msgTypeNoLock()
+		msgt, err := msg.MsgType()
 		if err != nil {
 			return
 		}
@@ -481,10 +474,6 @@ func isTrailerField(tag Tag, dataDict *datadictionary.DataDictionary) bool {
 // MsgType returns MsgType (tag 35) field's value.
 func (m *Message) MsgType() (string, MessageRejectError) {
 	return m.Header.GetString(tagMsgType)
-}
-
-func (m *Message) msgTypeNoLock() (string, MessageRejectError) {
-	return m.Header.getStringNoLock(tagMsgType)
 }
 
 // IsMsgTypeOf returns true if the Header contains MsgType (tag 35) field and its value is the specified one.

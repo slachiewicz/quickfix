@@ -1,32 +1,49 @@
-run:
-  timeout: 10m
-  # deprecated config - 
-  # skip-dirs:
-  #   - gen
-  #   - vendor
-
-issues:
-  exclude-dirs:
-    - gen
-    - vendor
-
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
     - dupl
-    - gofmt
-    - goimports
-    - gosimple
+    - godot
     - govet
     - ineffassign
     - misspell
     - revive
-    - unused
     - staticcheck
-    - godot
-
-linters-settings:
-  gofmt:
-    simplify: true
-  dupl:
-    threshold: 400
+    - unused
+  settings:
+    dupl:
+      threshold: 400
+    staticcheck:
+      # v1 ran only the SA (staticcheck) and S (gosimple) checks.
+      checks:
+        - all
+        - -ST*
+        - -QF*
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - gen
+      - vendor
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+  exclusions:
+    generated: lax
+    paths:
+      - gen
+      - vendor
+      - third_party$
+      - builtin$
+      - examples$
